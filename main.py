@@ -44,6 +44,11 @@ if page == "Home":
     - Proficient in various ML frameworks and technologies critical for this role.
     - Prior experience in predictive modeling, ETL pipelines, and developing interactive dashboards.
     """)
+    
+    st.subheader("Get Started - Fetch Rewards ML Engineer Exercise:")
+    st.write("Navigate to 'Feature Engineering, Preprocessing, EDA' to explore the processed data and 'Model Predictions' to start predicting scanned receipts.")
+
+
 
 # Feature Engineering, Preprocessing, EDA page
 elif page == "Feature Engineering, Preprocessing, EDA":
