@@ -134,4 +134,26 @@ elif page == "Feature Engineering, Preprocessing, EDA":
 elif page == "Model Predictions":
     st.title("Model Predictions")
     st.write("Here you can make predictions using your model.")
-    # Add your model prediction content here
+
+    # Selecting a model using radio buttons
+    selected_model = st.radio("Select Model", ("ARIMA", "Linear Regression", "Random Forest", "XGBoost", "PyTorch Model"))
+
+    if selected_model == "ARIMA":
+        st.write("ARIMA Model selected.")
+        # Your ARIMA model code here...
+
+    elif selected_model == "Linear Regression":
+        st.write("Linear Regression Model selected.")
+        # Your Linear Regression model code here...
+
+    elif selected_model == "Random Forest":
+        st.write("Random Forest Model selected.")
+        # Your Random Forest model code here...
+
+    elif selected_model == "XGBoost":
+        st.write("XGBoost Model selected.")
+        # Your XGBoost model code here...
+
+    elif selected_model == "PyTorch Model":
+        st.write("PyTorch Model selected.")
+        # Your PyTorch model code here...
