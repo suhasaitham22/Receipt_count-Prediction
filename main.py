@@ -28,6 +28,7 @@ elif page == "Feature Engineering, Preprocessing, EDA":
     show_feature_engineered_dataframe = st.checkbox("Show Feature Engineered DataFrame")
     show_monthly_receipts_line_chart = st.checkbox("Show Monthly Receipts - Line Chart")
     show_monthly_receipts_bar_chart = st.checkbox("Show Monthly Receipts - Bar Chart (Matplotlib)")
+    show_top_days = st.checkbox("Show Top 5 days with highest Receipts Count for selected month")
 
     # Display sections based on user selection
     if show_dataset:
@@ -84,20 +85,20 @@ elif page == "Feature Engineering, Preprocessing, EDA":
         plt.gca().invert_xaxis()
         st.pyplot(plt)
     
-
-    # Selecting a month using a dropdown list
-    selected_month = st.selectbox("Select a month (1-12)", options=range(1, 13), index=7)
-    if selected_month:
-        # Function to get top days for a specific month
-        def top_days_for_month(month, top_n=5):
-            selected_month_data = df[df['Month'] == month]
-            top_days = selected_month_data.nlargest(top_n, 'Receipt_Count')
-            return top_days.drop(columns='Year')
-
-        # Get top 5 days for the selected month
-        top_days = top_days_for_month(selected_month)
-        st.subheader(f"Top 5 days for month {selected_month}")
-        st.write(top_days)
+    # Only display if the checkbox is checked
+    if show_top_days:
+        selected_month = st.selectbox("Select a month (1-12)", options=range(1, 13), index=7)
+        if selected_month:
+            # Function to get top days for a specific month
+            def top_days_for_month(month, top_n=5):
+                selected_month_data = df[df['Month'] == month]
+                top_days = selected_month_data.nlargest(top_n, 'Receipt_Count')
+                return top_days.drop(columns='Year')
+    
+            # Get top 5 days for the selected month
+            top_days = top_days_for_month(selected_month)
+            st.subheader(f"Top 5 days with highest Receipts Count for month {selected_month}")
+            st.write(top_days)
 
 # Model Predictions page
 elif page == "Model Predictions":
