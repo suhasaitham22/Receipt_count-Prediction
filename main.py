@@ -222,10 +222,50 @@ elif page == "Model Predictions":
             st.write("Predictions DataFrame")
             st.write(predictions_df.reset_index(drop=True))
 
-    
+        
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
-        # Your Linear Regression model code here...
+    
+        # Adding day_number column
+        df['day_number'] = df['# Date'].dt.dayofyear
+    
+        selected_columns = ['day_number', 'Receipt_Count']
+        data = df[selected_columns]
+    
+        # Splitting data into features and target variable
+        X = data.drop('Receipt_Count', axis=1)
+        y = data['Receipt_Count']
+    
+        # Splitting the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+        # Creating a linear regression model
+        model = LinearRegression()
+    
+        # Training the model
+        model.fit(X_train, y_train)
+    
+        # Making predictions
+        y_pred = model.predict(X_test)
+    
+        # Model evaluation
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+    
+        st.write(f"Mean Squared Error: {mse}")
+        st.write(f"R-squared Score: {r2}")
+    
+        # Display predictions DataFrame based on user's choice
+        show_predictions_df = st.checkbox("Display Predictions DataFrame")
+        if show_predictions_df:
+            # Create DataFrame with day_number, Actual, and Predicted values
+            predictions_df = pd.DataFrame({
+                'day_number': X_test['day_number'],
+                'Actual': y_test,
+                'Predicted': y_pred
+            })
+            st.write("Predictions DataFrame")
+            st.write(predictions_df)
 
     elif selected_model == "Random Forest":
         st.write("Random Forest Model selected.")
