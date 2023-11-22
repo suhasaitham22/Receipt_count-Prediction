@@ -199,13 +199,14 @@ elif page == "Model Predictions":
         if show_plot:
             # Plotting
             plt.figure(figsize=(10, 6))
-            plt.plot(test.index, test, label='Actual')
-            plt.plot(test.index, predictions, label='ARIMA Forecast', color='red')
+            plt.plot(test.index.to_numpy(), test, label='Actual')
+            plt.plot(test.index.to_numpy(), predictions, label='ARIMA Forecast', color='red')
             plt.xlabel('Date')
             plt.ylabel('Receipt Count')
             plt.title('ARIMA Forecast vs Actual')
             plt.legend()
             st.pyplot(plt)
+
     
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
