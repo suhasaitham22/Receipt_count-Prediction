@@ -11,9 +11,39 @@ page = st.sidebar.selectbox("Go to", ("Home", "Feature Engineering, Preprocessin
 
 # Home page
 if page == "Home":
-    st.title("Home")
-    st.write("Welcome to the Home page!")
-    # Add any content for the Home page here
+    st.title("Fetch Rewards ML Engineer Exercise - Self-Assessment & Application")
+    st.write("Welcome! This is my approach to Fetch Rewards' Machine Learning Engineer position.")
+    
+    st.subheader("Task - Self-Assessment")
+    st.write("""
+    As a candidate applying for the ML Engineer position, my assessment and approach are as follows:
+    
+    **Instructions & Approach:**
+    - Understanding the task: Developed an ML model predicting scanned receipt numbers for 2022 based on 2021 data.
+    - Model Development: Aimed for a robust yet interpretable algorithm suitable for future data.
+    
+    **Evaluation Metrics Used:**
+    - Considering metrics aligned with prediction accuracy, such as RMSE or MAE and R squared for Regression Models.
+    
+    **Why Apply:**
+    - Passionate about leveraging data-driven insights for impactful solutions.
+    - Desire to contribute to Fetch Rewards' growth and innovation.
+    """)
+
+    st.subheader("Why Fetch Rewards")
+    st.write("""
+    **Reasons for Applying:**
+    - Fetch's focus on innovation and utilizing data aligns with my career aspirations.
+    - Excited about contributing to Fetch's success through innovative ML solutions.
+    """)
+
+    st.subheader("Why Me - Suhas Aitham")
+    st.write("""
+    **Strengths & Experience:**
+    - Master's in Data Science & Business Analytics: Equipped with the necessary technical skills.
+    - Proficient in various ML frameworks and technologies critical for this role.
+    - Prior experience in predictive modeling, ETL pipelines, and developing interactive dashboards.
+    """)
 
 # Feature Engineering, Preprocessing, EDA page
 elif page == "Feature Engineering, Preprocessing, EDA":
