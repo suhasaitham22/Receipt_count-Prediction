@@ -196,17 +196,29 @@ elif page == "Model Predictions":
     
         # Display plot based on user's choice
         show_plot = st.checkbox("Display Plot")
+        # if show_plot:
+        #     # Plotting
+        #     plt.figure(figsize=(10, 6))
+        #     plt.plot(test.index.to_numpy(), test.values, label='Actual')
+        #     plt.plot(test.index.to_numpy(), predictions.to_numpy(), label='ARIMA Forecast', color='red')
+        #     plt.xlabel('Date')
+        #     plt.ylabel('Receipt Count')
+        #     plt.title('ARIMA Forecast vs Actual')
+        #     plt.legend()
+        #     st.pyplot(plt)
         if show_plot:
-            # Plotting
-            plt.figure(figsize=(10, 6))
-            plt.plot(test.index.to_numpy(), test.values, label='Actual')
-            plt.plot(test.index.to_numpy(), predictions.to_numpy(), label='ARIMA Forecast', color='red')
-            plt.xlabel('Date')
-            plt.ylabel('Receipt Count')
-            plt.title('ARIMA Forecast vs Actual')
-            plt.legend()
-            st.pyplot(plt)
-
+            # Create a DataFrame for visualization
+            plot_data = pd.DataFrame({
+                'Date': test.index,
+                'Actual': test.values,
+                'ARIMA Forecast': predictions
+            })
+        
+            # Plotting using Plotly Express
+            fig = px.line(plot_data, x='Date', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
+            fig.update_xaxes(title='Date')
+            fig.update_yaxes(title='Receipt Count')
+            st.plotly_chart(fig)
     
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
