@@ -71,8 +71,12 @@ elif page == "Feature Engineering, Preprocessing, EDA":
         fig = px.line(monthly_receipts, x='Month', y='Receipt_Count',
                       labels={'Receipt_Count': 'Monthly Receipts', 'Month': 'Month'},
                       title='Monthly Receipts')
+        
+        # Set the template to a light-colored or white background
+        fig.update_layout(template='plotly_white')
+        
         st.plotly_chart(fig)
-
+    
     if show_monthly_receipts_bar_chart:
         st.subheader("Monthly Receipts - Bar Chart (Matplotlib)")
         monthly_receipts = monthly_receipts.sort_values('Receipt_Count', ascending=False)
@@ -82,7 +86,10 @@ elif page == "Feature Engineering, Preprocessing, EDA":
         plt.ylabel('Receipt Count')
         plt.title('Monthly Receipts')
         plt.gca().invert_xaxis()
-        st.pyplot(plt)
+    
+    # Customize Matplotlib plot properties for the bar chart
+    plt.style.use('seaborn-whitegrid')  # Change the Matplotlib style to a light-colored theme
+    st.pyplot(plt)
 
     # Selecting a month using a dropdown list
     selected_month = st.selectbox("Select a month (1-12)", options=range(1, 13), index=7)
