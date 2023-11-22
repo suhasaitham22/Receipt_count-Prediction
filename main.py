@@ -135,8 +135,8 @@ elif page == "Model Predictions":
     st.title("Model Predictions")
     st.write("Here you can make predictions using your model.")
 
-    # Selecting a model using radio buttons
-    selected_model = st.radio("Select Model", ("ARIMA", "Linear Regression", "Random Forest", "XGBoost", "PyTorch Model"))
+    # Selecting a model using a dropdown list
+    selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "Random Forest", "XGBoost", "PyTorch Model"))
 
     if selected_model == "ARIMA":
         st.write("ARIMA Model selected.")
