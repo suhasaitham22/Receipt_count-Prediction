@@ -150,7 +150,69 @@ elif page == "Model Predictions":
 
     if selected_model == "ARIMA":
         st.write("ARIMA Model selected.")
-        # Your ARIMA model code here...
+        
+        df.set_index('# Date', inplace=True)
+        # Selecting only the 'Receipt_Count' column for time series forecasting
+        ts_data = df['Receipt_Count']
+    
+        # Train-test split
+        train_size = int(len(ts_data) * 0.8)
+        train = ts_data.iloc[:train_size]
+        test = ts_data.iloc[train_size:]
+    
+        # Grid search for optimal ARIMA parameters
+        p = d = q = range(0, 3)
+        pdq = list(itertools.product(p, d, q))
+    
+        best_rmse = np.inf
+        best_params = None
+    
+        for param in pdq:
+            try:
+                model = ARIMA(train, order=param)
+                arima_model = model.fit()
+                predictions = arima_model.forecast(steps=len(test))
+                rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
+    
+                if rmse < best_rmse:
+                    best_rmse = rmse
+                    best_params = param
+            except:
+                continue
+    
+        st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
+    
+        # Fit ARIMA model with best parameters
+        model = ARIMA(train, order=best_params)
+        arima_model = model.fit()
+    
+        # Forecast
+        predictions = arima_model.forecast(steps=len(test))
+    
+        # Display plot based on user's choice
+        show_plot = st.checkbox("Display Plot")
+        if show_plot:
+            # Plotting
+            plt.figure(figsize=(10, 6))
+            plt.plot(test.index, test, label='Actual')
+            plt.plot(test.index, predictions, label='ARIMA Forecast', color='red')
+            plt.xlabel('Date')
+            plt.ylabel('Receipt Count')
+            plt.title('ARIMA Forecast vs Actual')
+            plt.legend()
+            st.pyplot(plt)
+    
+        # Display predictions DataFrame based on user's choice
+        show_predictions_df = st.checkbox("Display Predictions DataFrame")
+        if show_predictions_df:
+            # Create DataFrame with Date, Actual, and Predicted values
+            predictions_df = pd.DataFrame({
+                'Date': test.index,
+                'Actual': test.values,
+                'Predicted': predictions
+            })
+            st.write("Predictions DataFrame")
+            st.write(predictions_df)
 
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
