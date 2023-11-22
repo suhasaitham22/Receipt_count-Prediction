@@ -84,9 +84,6 @@ elif page == "Feature Engineering, Preprocessing, EDA":
         plt.gca().invert_xaxis()
         st.pyplot(plt)
     
-    # Customize Matplotlib plot properties for the bar chart
-    plt.style.use('seaborn-whitegrid')  # Change the Matplotlib style to a light-colored theme
-    st.pyplot(plt)
 
     # Selecting a month using a dropdown list
     selected_month = st.selectbox("Select a month (1-12)", options=range(1, 13), index=7)
