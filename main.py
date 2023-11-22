@@ -218,8 +218,9 @@ elif page == "Model Predictions":
                 'Predicted': predictions
             })
             st.write("Predictions DataFrame")
-            st.write(predictions_df)
+            st.write(predictions_df.reset_index(drop=True))
 
+    
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
         # Your Linear Regression model code here...
