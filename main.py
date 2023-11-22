@@ -199,7 +199,7 @@ elif page == "Model Predictions":
         if show_plot:
             # Plotting
             plt.figure(figsize=(10, 6))
-            plt.plot(test.index.to_numpy(), test, label='Actual')
+            plt.plot(test.index.to_numpy(), test.values, label='Actual')
             plt.plot(test.index.to_numpy(), predictions, label='ARIMA Forecast', color='red')
             plt.xlabel('Date')
             plt.ylabel('Receipt Count')
