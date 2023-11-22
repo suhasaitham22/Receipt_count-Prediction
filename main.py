@@ -44,7 +44,12 @@ elif page == "Feature Engineering, Preprocessing, EDA":
 
     if show_histogram:
         st.subheader("Histogram")
-        st.pyplot(df.hist())
+        column_to_plot = st.selectbox("Select column for histogram", df.columns)
+        
+        # Create a Matplotlib figure and plot the histogram
+        fig, ax = plt.subplots()
+        ax.hist(df[column_to_plot], bins=20)
+        st.pyplot(fig)
 
     # Convert '# Date' column to datetime
     df['# Date'] = pd.to_datetime(df['# Date'])
