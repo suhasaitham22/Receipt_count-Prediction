@@ -196,16 +196,6 @@ elif page == "Model Predictions":
     
         # Display plot based on user's choice
         show_plot = st.checkbox("Display Plot")
-        # if show_plot:
-        #     # Plotting
-        #     plt.figure(figsize=(10, 6))
-        #     plt.plot(test.index.to_numpy(), test.values, label='Actual')
-        #     plt.plot(test.index.to_numpy(), predictions.to_numpy(), label='ARIMA Forecast', color='red')
-        #     plt.xlabel('Date')
-        #     plt.ylabel('Receipt Count')
-        #     plt.title('ARIMA Forecast vs Actual')
-        #     plt.legend()
-        #     st.pyplot(plt)
         if show_plot:
             # Create a DataFrame for visualization
             plot_data = pd.DataFrame({
