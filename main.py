@@ -104,7 +104,7 @@ elif page == "Feature Engineering, Preprocessing, EDA":
     df['Year'] = df['# Date'].dt.year
     df['Month'] = df['# Date'].dt.month
     df['Day'] = df['# Date'].dt.day
-
+    df['day_number'] = df['# Date'].dt.dayofyear
     if show_feature_engineered_dataframe:
         st.subheader("Feature Engineered DataFrame")
         st.write(df)
