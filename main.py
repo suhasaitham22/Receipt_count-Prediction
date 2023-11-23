@@ -156,7 +156,7 @@ elif page == "Model Predictions":
 
     if selected_model == "ARIMA":
         st.write("ARIMA Model selected.")
-
+    
         # Convert index to datetime if it's not already
         df['# Date'] = pd.to_datetime(df['# Date'])
     
@@ -168,72 +168,69 @@ elif page == "Model Predictions":
         train = ts_data.iloc[:train_size]
         test = ts_data.iloc[train_size:]
     
-        # Grid search for optimal ARIMA parameters
-        p = d = q = range(0, 3)
-        pdq = list(itertools.product(p, d, q))
+        # Seasonal decomposition to identify seasonality
+        seasonal_decompose = sm.tsa.seasonal_decompose(train, model='additive', freq=12)
+        seasonal_decompose.plot()
+        st.pyplot()
     
-        best_rmse = np.inf
-        best_params = None
-    
-        for param in pdq:
-            try:
-                model = sm.tsa.ARIMA(train, order=param)
-                arima_model = model.fit()
-                predictions = arima_model.forecast(steps=len(test))
-                rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
-    
-                if rmse < best_rmse:
-                    best_rmse = rmse
-                    best_params = param
-            except:
-                continue
-    
-        st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
+        # Using auto ARIMA to find the best parameters
+        auto_arima_model = sm.tsa.arima.auto_arima(
+            train,
+            start_p=1, start_q=1,
+            max_p=3, max_q=3,
+            m=12,  # for monthly data
+            start_P=0, seasonal=True,
+            d=1, D=1,
+            trace=True,
+            error_action='ignore',
+            suppress_warnings=True,
+            stepwise=True
+        )
     
         # Fit ARIMA model with best parameters
-        model = sm.tsa.ARIMA(train, order=best_params)
-        arima_model = model.fit()
+        arima_model = sm.tsa.ARIMA(train, order=auto_arima_model.order)
+        arima_fit = arima_model.fit()
     
         # Forecast
-        predictions = arima_model.forecast(steps=len(test))
+        monthly_predictions = arima_fit.forecast(steps=len(test))
+        monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
     
         # Display plot based on user's choice
         show_plot = st.checkbox("Display Plot")
         if show_plot:
             # Create a DataFrame for visualization
             plot_data = pd.DataFrame({
-                'Date': test.index,
+                'Month': monthly_index,
                 'Actual': test.values,
-                'ARIMA Forecast': predictions
+                'ARIMA Forecast': monthly_predictions
             })
     
             # Plotting using Plotly Express
-            fig = px.line(plot_data, x='Date', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
-            fig.update_xaxes(title='Date')
+            fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
+            fig.update_xaxes(title='Month')
             fig.update_yaxes(title='Receipt Count')
             st.plotly_chart(fig)
     
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
         if show_predictions_df:
-            # Create DataFrame with Date, Actual, and Predicted values
+            # Create DataFrame with Month, Actual, and Predicted values
             predictions_df = pd.DataFrame({
-                'Date': test.index,
+                'Month': monthly_index,
                 'Actual': test.values,
-                'Predicted': predictions
+                'Predicted': monthly_predictions
             })
             st.write("Predictions DataFrame")
             st.write(predictions_df.reset_index(drop=True))
-
         
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
-    
+        
         # Convert index to datetime if it's not already
         df['# Date'] = pd.to_datetime(df['# Date'])
     
-        # Extract month from the date
-        df['month'] = df['# Date'].dt.to_period('M')
+        # Extract month from the date and convert it to a numerical representation
+        df['month'] = df['# Date'].dt.month
     
         selected_columns = ['month', 'Receipt_Count']
         data = df.groupby('month')['Receipt_Count'].sum().reset_index()
