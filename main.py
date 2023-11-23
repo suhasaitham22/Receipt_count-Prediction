@@ -285,125 +285,124 @@ elif page == "Model Predictions":
             st.write("Predictions DataFrame")
             st.write(predictions_df)
 
-    elif selected_model == "PyTorch Model":
-        st.write("PyTorch Model selected.")
+if selected_model == "PyTorch Model":
+    st.write("PyTorch Model selected.")
+
+    selected_option = st.sidebar.selectbox('Select Option', ('Print Test Predictions', 'Forecast Next Year'))
+
+    if selected_option == 'Print Test Predictions':
         # Your PyTorch model code here...
-        st.title('PyTorch Model Deployment with Streamlit')
-
-        selected_option = st.sidebar.selectbox('Select Option', ('Print Test Predictions', 'Forecast Next Year'))
-        
-        if selected_option == 'Print Test Predictions':
-            # Extract month from the date
-            df['Month'] = df['# Date'].dt.to_period('M')
-        
-            # Aggregate Receipt_Count on a monthly basis
-            monthly_data = df.groupby('Month')['Receipt_Count'].sum().reset_index()
-        
-            # Prepare the data
-            features = monthly_data.index.values.reshape(-1, 1)  # Using index as a representation of months
-            target = monthly_data['Receipt_Count'].values.reshape(-1, 1)
-        
-            # Normalize the input features
-            scaler = StandardScaler()
-            features = scaler.fit_transform(features)
-        
-            # Split the data into training, validation, and test sets
-            X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
-            X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
-        
-            # Convert numpy arrays to PyTorch tensors
-            X_train = torch.tensor(X_train, dtype=torch.float32)
-            y_train = torch.tensor(y_train, dtype=torch.float32)
-            X_val = torch.tensor(X_val, dtype=torch.float32)
-            y_val = torch.tensor(y_val, dtype=torch.float32)
-            X_test = torch.tensor(X_test, dtype=torch.float32)
-            y_test = torch.tensor(y_test, dtype=torch.float32)
-        
-            class DeeperModel(nn.Module):
-        def __init__(self, input_size, hidden_sizes):
-            super(DeeperModel, self).__init__()
-            layers = []
-            for i in range(len(hidden_sizes) - 1):
-                layers.extend([
-                    nn.Linear(hidden_sizes[i], hidden_sizes[i + 1]),
-                    nn.ReLU(),
-                    nn.Dropout(0.3)  # Adjusted dropout rate
-                ])
-            layers.pop()  # Remove dropout from last layer
-            self.layers = nn.Sequential(*layers)
-
-        def forward(self, x):
-            out = self.layers(x)
-            return out
-
-    # Adjusted model and hyperparameters
-    input_size = features.shape[1]
-    hidden_sizes = [input_size, 1024, 512, 256, 128, 64, 1]  # Increased layers and neurons
-    deeper_model = DeeperModel(input_size, hidden_sizes)
-
-    # Adjusted optimizer and learning rate
-    optimizer = torch.optim.Adam(deeper_model.parameters(), lr=0.001, weight_decay=1e-5)  # Adjusted learning rate and weight decay
-    criterion = nn.MSELoss()
-
-    # Variables to track the best model
-    best_r2_test = float('-inf')
-    best_model_test = None
-
-    # Train the deeper model
-    num_epochs = 2000
-    for epoch in range(num_epochs):
-        deeper_model.train()
-        optimizer.zero_grad()
-        outputs = deeper_model(X_train)
-        loss = criterion(outputs, y_train)
-        loss.backward()
-        optimizer.step()
-
-        # Evaluate on validation set and track best model based on R-squared
+        # Extract month from the date
+        df['Month'] = df['# Date'].dt.to_period('M')
+    
+        # Aggregate Receipt_Count on a monthly basis
+        monthly_data = df.groupby('Month')['Receipt_Count'].sum().reset_index()
+    
+        # Prepare the data
+        features = monthly_data.index.values.reshape(-1, 1)  # Using index as a representation of months
+        target = monthly_data['Receipt_Count'].values.reshape(-1, 1)
+    
+        # Normalize the input features
+        scaler = StandardScaler()
+        features = scaler.fit_transform(features)
+    
+        # Split the data into training, validation, and test sets
+        X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
+        X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+    
+        # Convert numpy arrays to PyTorch tensors
+        X_train = torch.tensor(X_train, dtype=torch.float32)
+        y_train = torch.tensor(y_train, dtype=torch.float32)
+        X_val = torch.tensor(X_val, dtype=torch.float32)
+        y_val = torch.tensor(y_val, dtype=torch.float32)
+        X_test = torch.tensor(X_test, dtype=torch.float32)
+        y_test = torch.tensor(y_test, dtype=torch.float32)
+    
+        class DeeperModel(nn.Module):
+            def __init__(self, input_size, hidden_sizes):
+                super(DeeperModel, self).__init__()
+                layers = []
+                for i in range(len(hidden_sizes) - 1):
+                    layers.extend([
+                        nn.Linear(hidden_sizes[i], hidden_sizes[i + 1]),
+                        nn.ReLU(),
+                        nn.Dropout(0.3)  # Adjusted dropout rate
+                    ])
+                layers.pop()  # Remove dropout from last layer
+                self.layers = nn.Sequential(*layers)
+    
+            def forward(self, x):
+                out = self.layers(x)
+                return out
+    
+        # Adjusted model and hyperparameters
+        input_size = features.shape[1]
+        hidden_sizes = [input_size, 1024, 512, 256, 128, 64, 1]  # Increased layers and neurons
+        deeper_model = DeeperModel(input_size, hidden_sizes)
+    
+        # Adjusted optimizer and learning rate
+        optimizer = torch.optim.Adam(deeper_model.parameters(), lr=0.001, weight_decay=1e-5)  # Adjusted learning rate and weight decay
+        criterion = nn.MSELoss()
+    
+        # Variables to track the best model
+        best_r2_test = float('-inf')
+        best_model_test = None
+    
+        # Train the deeper model
+        num_epochs = 2000
+        for epoch in range(num_epochs):
+            deeper_model.train()
+            optimizer.zero_grad()
+            outputs = deeper_model(X_train)
+            loss = criterion(outputs, y_train)
+            loss.backward()
+            optimizer.step()
+    
+            # Evaluate on validation set and track best model based on R-squared
+            deeper_model.eval()
+            with torch.no_grad():
+                predicted_val = deeper_model(X_val)
+                ss_res = torch.sum((y_val - predicted_val) ** 2)
+                ss_tot = torch.sum((y_val - torch.mean(y_val)) ** 2)
+                current_r2 = 1 - (ss_res / ss_tot)
+    
+                if current_r2 > best_r2_test:  # Store model with best R-squared on test set
+                    best_r2_test = current_r2
+                    best_model_test = deeper_model.state_dict()
+    
+            if (epoch + 1) % 50 == 0:
+                st.write(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Current R-squared on Validation: {current_r2.item():.4f}')
+    
+        # Load the best model and evaluate on the test set
+        deeper_model.load_state_dict(best_model_test)
         deeper_model.eval()
         with torch.no_grad():
-            predicted_val = deeper_model(X_val)
-            ss_res = torch.sum((y_val - predicted_val) ** 2)
-            ss_tot = torch.sum((y_val - torch.mean(y_val)) ** 2)
-            current_r2 = 1 - (ss_res / ss_tot)
+            predicted_test = deeper_model(X_test)
+            predicted_test = predicted_test.numpy()  # Convert torch tensor to numpy array
+            test_df = pd.DataFrame({'Actual': y_test.numpy().flatten(), 'Predicted': predicted_test.flatten()})
+        
+        st.write("Predictions on Test Data:")
+        st.write(test_df)
 
-            if current_r2 > best_r2_test:  # Store model with best R-squared on test set
-                best_r2_test = current_r2
-                best_model_test = deeper_model.state_dict()
-
-        if (epoch + 1) % 50 == 0:
-            st.write(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Current R-squared on Validation: {current_r2.item():.4f}')
-
-    # Load the best model and evaluate on the test set
-    deeper_model.load_state_dict(best_model_test)
-    deeper_model.eval()
-    with torch.no_grad():
-        predicted_test = deeper_model(X_test)
-        predicted_test = predicted_test.numpy()  # Convert torch tensor to numpy array
-        test_df = pd.DataFrame({'Actual': y_test.numpy().flatten(), 'Predicted': predicted_test.flatten()})
+    elif selected_option == 'Forecast Next Year':
+        # Assume forecasting for the next year
+        future_dates = pd.date_range(start='2023-01-01', periods=12, freq='M')
     
-    st.write("Predictions on Test Data:")
-    st.write(test_df)
-
-elif selected_option == 'Forecast Next Year':
-    # Assume forecasting for the next year
-    future_dates = pd.date_range(start='2023-01-01', periods=12, freq='M')
-
-    # Prepare the features for forecasting
-    future_features = np.arange(len(monthly_data), len(monthly_data) + 12).reshape(-1, 1)
-    future_features = scaler.transform(future_features)
-
-    # Convert to PyTorch tensor
-    future_features = torch.tensor(future_features, dtype=torch.float32)
-
-    # Use the trained model to forecast
-    deeper_model.eval()
-    with torch.no_grad():
-        future_predictions = deeper_model(future_features)
-        future_predictions = future_predictions.numpy().flatten()
-
-    # Create a dataframe with the forecasted data
-    forecast_df = pd.DataFrame({'Date': future_dates, 'Forecasted Receipts Count': future_predictions})
+        # Prepare the features for forecasting
+        future_features = np.arange(len(monthly_data), len(monthly_data) + 12).reshape(-1, 1)
+        future_features = scaler.transform(future_features)
     
-    st.write("Forecast for the Next Year:")
-    st.write(forecast_df)
+        # Convert to PyTorch tensor
+        future_features = torch.tensor(future_features, dtype=torch.float32)
+    
+        # Use the trained model to forecast
+        deeper_model.eval()
+        with torch.no_grad():
+            future_predictions = deeper_model(future_features)
+            future_predictions = future_predictions.numpy().flatten()
+    
+        # Create a dataframe with the forecasted data
+        forecast_df = pd.DataFrame({'Date': future_dates, 'Forecasted Receipts Count': future_predictions})
+        
+        st.write("Forecast for the Next Year:")
+        st.write(forecast_df)
