@@ -155,41 +155,43 @@ elif page == "Model Predictions":
     
     if selected_model == "ARIMA":
         
-        st.write("Here you can make predictions using your model.")
-    
-        # Convert index to datetime if it's not already
-        df['# Date'] = pd.to_datetime(df['# Date'])
-        
+        st.write("ARIMA Model is Selected.")
+
         # Resample data to monthly frequency
         ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
-        
+    
         # Train-test split
         train_size = int(len(ts_data) * 0.8)
         train = ts_data.iloc[:train_size]
         test = ts_data.iloc[train_size:]
-        
-        # Using auto ARIMA to find the best parameters
-        auto_arima_model = sm.tsa.arima.auto_arima(
-            train,
-            start_p=1, start_q=1,
-            max_p=3, max_q=3,
-            m=12,  # for monthly data
-            start_P=0, seasonal=True,
-            d=1, D=1,
-            trace=True,
-            error_action='ignore',
-            suppress_warnings=True,
-            stepwise=True
-        )
-        
+    
+        # Grid search for optimal ARIMA parameters
+        p = d = q = range(0, 3)
+        pdq = list(itertools.product(p, d, q))
+    
+        best_rmse = np.inf
+        best_params = None
+    
+        for param in pdq:
+            model = sm.tsa.SARIMAX(train, order=param)
+            arima_model = model.fit()
+            predictions = arima_model.forecast(steps=len(test))
+            rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
+    
+            if rmse < best_rmse:
+                best_rmse = rmse
+                best_params = param
+    
+        st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
+    
         # Fit ARIMA model with best parameters
-        arima_model = sm.tsa.ARIMA(train, order=auto_arima_model.order)
+        arima_model = sm.tsa.SARIMAX(train, order=best_params)
         arima_fit = arima_model.fit()
-        
+    
         # Forecast
         monthly_predictions = arima_fit.forecast(steps=len(test))
         monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
-        
+    
         # Display plot based on user's choice
         show_plot = st.checkbox("Display Plot")
         if show_plot:
@@ -199,13 +201,13 @@ elif page == "Model Predictions":
                 'Actual': test.values,
                 'ARIMA Forecast': monthly_predictions
             })
-        
+    
             # Plotting using Plotly Express
             fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
             fig.update_xaxes(title='Month')
             fig.update_yaxes(title='Receipt Count')
             st.plotly_chart(fig)
-        
+    
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
         if show_predictions_df:
@@ -216,8 +218,7 @@ elif page == "Model Predictions":
                 'Predicted': monthly_predictions
             })
             st.write("Predictions DataFrame")
-            st.write(predictions_df.reset_index(drop=True))  
-
+            st.write(predictions_df.reset_index(drop=True))
     
     elif selected_model == "Linear Regression":
         st.write('Linear Regression Model Selected')
