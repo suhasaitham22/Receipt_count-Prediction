@@ -156,7 +156,20 @@ elif page == "Model Predictions":
     if selected_model == "ARIMA":
         st.write("ARIMA Model is Selected.")
 
+        # Convert '# Date' column to datetime if it's not already
+        df['# Date'] = pd.to_datetime(df['# Date'])
+    
+        # Set '# Date' column as the index
         df.set_index('# Date', inplace=True)
+    
+        # Check if the index is a DatetimeIndex, if not, try converting it
+        if not isinstance(df.index, pd.DatetimeIndex):
+            try:
+                df.index = pd.to_datetime(df.index)
+            except ValueError as e:
+                st.error(f"Error converting index to DatetimeIndex: {e}")
+                st.stop()
+                
         # Resample data to monthly frequency
         ts_data = df['Receipt_Count'].resample('M').sum()
     
