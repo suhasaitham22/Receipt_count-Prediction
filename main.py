@@ -291,8 +291,8 @@ if selected_model == "PyTorch Model":
     selected_option = st.sidebar.selectbox('Select Option', ('Print Test Predictions', 'Forecast Next Year'))
 
     if selected_option == 'Print Test Predictions':
-        # Your PyTorch model code here...
-        # Extract month from the date
+
+        df['# Date'] = pd.to_datetime(df['# Date'])
         df['Month'] = df['# Date'].dt.to_period('M')
     
         # Aggregate Receipt_Count on a monthly basis
