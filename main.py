@@ -154,22 +154,20 @@ elif page == "Model Predictions":
     selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "PyTorch Model"))
     
     if selected_model == "ARIMA":
+        
+        st.write("Here you can make predictions using your model.")
+    
         # Convert index to datetime if it's not already
         df['# Date'] = pd.to_datetime(df['# Date'])
-    
+        
         # Resample data to monthly frequency
         ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
-    
+        
         # Train-test split
         train_size = int(len(ts_data) * 0.8)
         train = ts_data.iloc[:train_size]
         test = ts_data.iloc[train_size:]
-    
-        # Seasonal decomposition to identify seasonality
-        seasonal_decompose = sm.tsa.seasonal_decompose(train, model='additive', period=12)  # Set the period here
-        seasonal_decompose.plot()
-        st.pyplot()
-    
+        
         # Using auto ARIMA to find the best parameters
         auto_arima_model = sm.tsa.arima.auto_arima(
             train,
@@ -183,15 +181,15 @@ elif page == "Model Predictions":
             suppress_warnings=True,
             stepwise=True
         )
-    
+        
         # Fit ARIMA model with best parameters
         arima_model = sm.tsa.ARIMA(train, order=auto_arima_model.order)
         arima_fit = arima_model.fit()
-    
+        
         # Forecast
         monthly_predictions = arima_fit.forecast(steps=len(test))
         monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
-    
+        
         # Display plot based on user's choice
         show_plot = st.checkbox("Display Plot")
         if show_plot:
@@ -201,13 +199,13 @@ elif page == "Model Predictions":
                 'Actual': test.values,
                 'ARIMA Forecast': monthly_predictions
             })
-    
+        
             # Plotting using Plotly Express
             fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
             fig.update_xaxes(title='Month')
             fig.update_yaxes(title='Receipt Count')
             st.plotly_chart(fig)
-    
+        
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
         if show_predictions_df:
@@ -218,8 +216,9 @@ elif page == "Model Predictions":
                 'Predicted': monthly_predictions
             })
             st.write("Predictions DataFrame")
-            st.write(predictions_df.reset_index(drop=True))
-        
+            st.write(predictions_df.reset_index(drop=True))  
+
+    
     elif selected_model == "Linear Regression":
         st.write('Linear Regression Model Selected')
         # Convert index to datetime if it's not already
