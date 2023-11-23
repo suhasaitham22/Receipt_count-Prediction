@@ -155,10 +155,12 @@ elif page == "Model Predictions":
 
     if selected_model == "ARIMA":
         st.write("ARIMA Model selected.")
-        
-        df.set_index('# Date', inplace=True)
-        # Selecting only the 'Receipt_Count' column for time series forecasting
-        ts_data = df['Receipt_Count']
+
+        # Convert index to datetime if it's not already
+        df['# Date'] = pd.to_datetime(df['# Date'])
+    
+        # Resample data to monthly frequency
+        ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
     
         # Train-test split
         train_size = int(len(ts_data) * 0.8)
@@ -174,7 +176,7 @@ elif page == "Model Predictions":
     
         for param in pdq:
             try:
-                model = ARIMA(train, order=param)
+                model = sm.tsa.ARIMA(train, order=param)
                 arima_model = model.fit()
                 predictions = arima_model.forecast(steps=len(test))
                 rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
@@ -188,7 +190,7 @@ elif page == "Model Predictions":
         st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
     
         # Fit ARIMA model with best parameters
-        model = ARIMA(train, order=best_params)
+        model = sm.tsa.ARIMA(train, order=best_params)
         arima_model = model.fit()
     
         # Forecast
@@ -203,7 +205,7 @@ elif page == "Model Predictions":
                 'Actual': test.values,
                 'ARIMA Forecast': predictions
             })
-        
+    
             # Plotting using Plotly Express
             fig = px.line(plot_data, x='Date', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
             fig.update_xaxes(title='Date')
@@ -225,19 +227,21 @@ elif page == "Model Predictions":
         
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
-        
-        df['# Date'] = pd.to_datetime(df['# Date'])
-        # Adding day_number column
-        df['day_number'] = df['# Date'].dt.dayofyear
     
-        selected_columns = ['day_number', 'Receipt_Count']
-        data = df[selected_columns]
+        # Convert index to datetime if it's not already
+        df['# Date'] = pd.to_datetime(df['# Date'])
+    
+        # Extract month from the date
+        df['month'] = df['# Date'].dt.to_period('M')
+    
+        selected_columns = ['month', 'Receipt_Count']
+        data = df.groupby('month')['Receipt_Count'].sum().reset_index()
     
         # Splitting data into features and target variable
         X = data.drop('Receipt_Count', axis=1)
         y = data['Receipt_Count']
     
-        # Splitting the data into training and testing sets
+        # Train-test split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
         # Creating a linear regression model
@@ -259,15 +263,15 @@ elif page == "Model Predictions":
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
         if show_predictions_df:
-            # Create DataFrame with day_number, Actual, and Predicted values
+            # Create DataFrame with month, Actual, and Predicted values
             predictions_df = pd.DataFrame({
-                'day_number': X_test['day_number'],
+                'month': X_test['month'],
                 'Actual': y_test,
                 'Predicted': y_pred
             })
             st.write("Predictions DataFrame")
             st.write(predictions_df)
-
+            
 
     elif selected_model == "PyTorch Model":
         st.write("PyTorch Model selected.")
