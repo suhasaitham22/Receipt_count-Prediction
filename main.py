@@ -149,84 +149,92 @@ elif page == "Feature Engineering, Preprocessing, EDA":
 # Model Predictions page
 elif page == "Model Predictions":
     st.title("Model Predictions")
+    st.write("Here you can make predictions using your model.")
+    # Selecting a model using a dropdown list
+    selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "PyTorch Model"))
     
-    # Convert index to datetime if it's not already
-    df['# Date'] = pd.to_datetime(df['# Date'])
-
-    # Resample data to monthly frequency
-    ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
-
-    # Train-test split
-    train_size = int(len(ts_data) * 0.8)
-    train = ts_data.iloc[:train_size]
-    test = ts_data.iloc[train_size:]
-
-    # Seasonal decomposition to identify seasonality
-    seasonal_decompose = sm.tsa.seasonal_decompose(train, model='additive', period=12)  # Set the period here
-    seasonal_decompose.plot()
-    st.pyplot()
-
-    # Using auto ARIMA to find the best parameters
-    auto_arima_model = sm.tsa.arima.auto_arima(
-        train,
-        start_p=1, start_q=1,
-        max_p=3, max_q=3,
-        m=12,  # for monthly data
-        start_P=0, seasonal=True,
-        d=1, D=1,
-        trace=True,
-        error_action='ignore',
-        suppress_warnings=True,
-        stepwise=True
-    )
-
-    # Fit ARIMA model with best parameters
-    arima_model = sm.tsa.ARIMA(train, order=auto_arima_model.order)
-    arima_fit = arima_model.fit()
-
-    # Forecast
-    monthly_predictions = arima_fit.forecast(steps=len(test))
-    monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
-
-    # Display plot based on user's choice
-    show_plot = st.checkbox("Display Plot")
-    if show_plot:
-        # Create a DataFrame for visualization
-        plot_data = pd.DataFrame({
-            'Month': monthly_index,
-            'Actual': test.values,
-            'ARIMA Forecast': monthly_predictions
-        })
-
-        # Plotting using Plotly Express
-        fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
-        fig.update_xaxes(title='Month')
-        fig.update_yaxes(title='Receipt Count')
-        st.plotly_chart(fig)
-
-    # Display predictions DataFrame based on user's choice
-    show_predictions_df = st.checkbox("Display Predictions DataFrame")
-    if show_predictions_df:
-        # Create DataFrame with Month, Actual, and Predicted values
-        predictions_df = pd.DataFrame({
-            'Month': monthly_index,
-            'Actual': test.values,
-            'Predicted': monthly_predictions
-        })
-        st.write("Predictions DataFrame")
-        st.write(predictions_df.reset_index(drop=True))
-        
-    elif selected_model == "Linear Regression":
-        st.write("Linear Regression Model selected.")
-        
+    if selected_model == "ARIMA":
         # Convert index to datetime if it's not already
         df['# Date'] = pd.to_datetime(df['# Date'])
     
-        # Extract month from the date and convert it to a numerical representation
-        df['month'] = df['# Date'].dt.month
+        # Resample data to monthly frequency
+        ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
     
-        selected_columns = ['month', 'Receipt_Count']
-        data = df.groupby('month')['Receipt_Count'].sum().reset_index()
+        # Train-test split
+        train_size = int(len(ts_data) * 0.8)
+        train = ts_data.iloc[:train_size]
+        test = ts_data.iloc[train_size:]
+    
+        # Seasonal decomposition to identify seasonality
+        seasonal_decompose = sm.tsa.seasonal_decompose(train, model='additive', period=12)  # Set the period here
+        seasonal_decompose.plot()
+        st.pyplot()
+    
+        # Using auto ARIMA to find the best parameters
+        auto_arima_model = sm.tsa.arima.auto_arima(
+            train,
+            start_p=1, start_q=1,
+            max_p=3, max_q=3,
+            m=12,  # for monthly data
+            start_P=0, seasonal=True,
+            d=1, D=1,
+            trace=True,
+            error_action='ignore',
+            suppress_warnings=True,
+            stepwise=True
+        )
+    
+        # Fit ARIMA model with best parameters
+        arima_model = sm.tsa.ARIMA(train, order=auto_arima_model.order)
+        arima_fit = arima_model.fit()
+    
+        # Forecast
+        monthly_predictions = arima_fit.forecast(steps=len(test))
+        monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
+    
+        # Display plot based on user's choice
+        show_plot = st.checkbox("Display Plot")
+        if show_plot:
+            # Create a DataFrame for visualization
+            plot_data = pd.DataFrame({
+                'Month': monthly_index,
+                'Actual': test.values,
+                'ARIMA Forecast': monthly_predictions
+            })
+    
+            # Plotting using Plotly Express
+            fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
+            fig.update_xaxes(title='Month')
+            fig.update_yaxes(title='Receipt Count')
+            st.plotly_chart(fig)
+    
+        # Display predictions DataFrame based on user's choice
+        show_predictions_df = st.checkbox("Display Predictions DataFrame")
+        if show_predictions_df:
+            # Create DataFrame with Month, Actual, and Predicted values
+            predictions_df = pd.DataFrame({
+                'Month': monthly_index,
+                'Actual': test.values,
+                'Predicted': monthly_predictions
+            })
+            st.write("Predictions DataFrame")
+            st.write(predictions_df.reset_index(drop=True))
+        
+    elif selected_model == "Linear Regression":
+        st.write("Here you can make predictions using your model.")
+
+        # Convert index to datetime if it's not already
+        df['# Date'] = pd.to_datetime(df['# Date'])
+        
+        # Extract relevant features
+        df['month'] = df['# Date'].dt.month
+        df['quarter'] = df['# Date'].dt.quarter  # Add quarter as a feature
+    
+        # Lag features: Previous month's sales
+        df['previous_month_sales'] = df['Receipt_Count'].shift(1)
+        
+        selected_columns = ['month', 'quarter', 'previous_month_sales', 'Receipt_Count']
+        data = df[selected_columns].dropna()
     
         # Splitting data into features and target variable
         X = data.drop('Receipt_Count', axis=1)
@@ -235,8 +243,8 @@ elif page == "Model Predictions":
         # Train-test split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-        # Creating a linear regression model
-        model = LinearRegression()
+        # Creating a pipeline with Polynomial Regression
+        model = make_pipeline(PolynomialFeatures(degree=2), LinearRegression())
     
         # Training the model
         model.fit(X_train, y_train)
@@ -254,15 +262,16 @@ elif page == "Model Predictions":
         # Display predictions DataFrame based on user's choice
         show_predictions_df = st.checkbox("Display Predictions DataFrame")
         if show_predictions_df:
-            # Create DataFrame with month, Actual, and Predicted values
+            # Create DataFrame with features, Actual, and Predicted values
             predictions_df = pd.DataFrame({
-                'month': X_test['month'],
+                'Month': X_test['month'],
+                'Quarter': X_test['quarter'],
+                'Previous_Month_Sales': X_test['previous_month_sales'],
                 'Actual': y_test,
                 'Predicted': y_pred
             })
             st.write("Predictions DataFrame")
             st.write(predictions_df)
-            
 
     elif selected_model == "PyTorch Model":
         st.write("PyTorch Model selected.")
