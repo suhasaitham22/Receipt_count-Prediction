@@ -151,7 +151,7 @@ elif page == "Model Predictions":
     st.write("Here you can make predictions using your model.")
 
     # Selecting a model using a dropdown list
-    selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "Random Forest", "XGBoost", "PyTorch Model"))
+    selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "PyTorch Model"))
 
     if selected_model == "ARIMA":
         st.write("ARIMA Model selected.")
@@ -225,7 +225,8 @@ elif page == "Model Predictions":
         
     elif selected_model == "Linear Regression":
         st.write("Linear Regression Model selected.")
-    
+        
+        df['# Date'] = pd.to_datetime(df['# Date'])
         # Adding day_number column
         df['day_number'] = df['# Date'].dt.dayofyear
     
@@ -267,13 +268,6 @@ elif page == "Model Predictions":
             st.write("Predictions DataFrame")
             st.write(predictions_df)
 
-    elif selected_model == "Random Forest":
-        st.write("Random Forest Model selected.")
-        # Your Random Forest model code here...
-
-    elif selected_model == "XGBoost":
-        st.write("XGBoost Model selected.")
-        # Your XGBoost model code here...
 
     elif selected_model == "PyTorch Model":
         st.write("PyTorch Model selected.")
