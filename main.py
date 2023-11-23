@@ -154,17 +154,17 @@ elif page == "Model Predictions":
     selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "PyTorch Model"))
     
     if selected_model == "ARIMA":
-        
         st.write("ARIMA Model is Selected.")
 
+        df.set_index('# Date', inplace=True)
         # Resample data to monthly frequency
-        ts_data = df.set_index('# Date')['Receipt_Count'].resample('M').sum()
+        ts_data = df['Receipt_Count'].resample('M').sum()
     
         # Train-test split
         train_size = int(len(ts_data) * 0.8)
         train = ts_data.iloc[:train_size]
         test = ts_data.iloc[train_size:]
-    
+
         # Grid search for optimal ARIMA parameters
         p = d = q = range(0, 3)
         pdq = list(itertools.product(p, d, q))
