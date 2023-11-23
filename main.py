@@ -221,8 +221,7 @@ elif page == "Model Predictions":
             st.write(predictions_df.reset_index(drop=True))
         
     elif selected_model == "Linear Regression":
-        st.write("Here you can make predictions using your model.")
-
+        st.write('Linear Regression Model Selected')
         # Convert index to datetime if it's not already
         df['# Date'] = pd.to_datetime(df['# Date'])
         
@@ -243,8 +242,8 @@ elif page == "Model Predictions":
         # Train-test split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-        # Creating a pipeline with Polynomial Regression
-        model = make_pipeline(PolynomialFeatures(degree=2), LinearRegression())
+        # Creating a linear regression model
+        model = LinearRegression()
     
         # Training the model
         model.fit(X_train, y_train)
