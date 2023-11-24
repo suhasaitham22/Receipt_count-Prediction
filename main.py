@@ -353,12 +353,13 @@ if selected_model == "PyTorch Model":
     
     deeper_model.eval()  # Set the model to evaluation mode
     
-    # Predictions on Test Data
+    # Predictions on Test Data with only the Month
     with torch.no_grad():
         predicted_test = deeper_model(X_test).numpy()
-        test_df = pd.DataFrame({'Actual': y_test.numpy().flatten(), 'Predicted': predicted_test.flatten()})
-        
-    # Forecast for the Next Year
+        test_dates = df.loc[y_test.index, 'Month']  # Extract corresponding dates from the original dataframe
+        test_df = pd.DataFrame({'Month': test_dates.dt.to_timestamp().dt.strftime('%B %Y'), 'Actual': y_test.numpy().flatten(), 'Predicted': predicted_test.flatten()})
+    
+    # Forecast for the Next Year with only the Month
     future_dates = pd.date_range(start='2023-01-01', periods=12, freq='M')
     future_features = np.arange(len(monthly_data), len(monthly_data) + 12).reshape(-1, 1)
     future_features = scaler.transform(future_features)
@@ -367,11 +368,12 @@ if selected_model == "PyTorch Model":
     with torch.no_grad():
         future_predictions = deeper_model(future_features).numpy()
     
-    forecast_df = pd.DataFrame({'Date': future_dates, 'Forecasted Receipts Count': future_predictions.flatten()})
+    forecast_dates = pd.Series(future_dates).dt.to_period('M')
+    forecast_df = pd.DataFrame({'Month': forecast_dates.dt.to_timestamp().dt.strftime('%B %Y'), 'Forecasted Receipts Count': future_predictions.flatten()})
     
-    # Display predictions and forecast on the same page
-    st.write("Predictions on Test Data:")
+    # Display predictions and forecast on the same page with only the Month
+    st.write("Predictions on Test Data (Month-wise):")
     st.write(test_df)
     
-    st.write("Forecast for the Next Year:")
+    st.write("Forecast for the Next Year (Month-wise):")
     st.write(forecast_df)
