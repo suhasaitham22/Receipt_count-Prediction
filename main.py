@@ -353,11 +353,19 @@ if selected_model == "PyTorch Model":
     
     deeper_model.eval()  # Set the model to evaluation mode
     
-    # Predictions on Test Data with only the Month
+        # Predictions on Test Data with only the Month
     with torch.no_grad():
         predicted_test = deeper_model(X_test).numpy()
-        test_dates = df.loc[y_test.index, 'Month']  # Extract corresponding dates from the original dataframe
-        test_df = pd.DataFrame({'Month': test_dates.dt.to_timestamp().dt.strftime('%B %Y'), 'Actual': y_test.numpy().flatten(), 'Predicted': predicted_test.flatten()})
+    
+    # Extract dates for test data from the original dataframe
+    test_dates_np = df.loc[X_test.numpy().flatten(), 'Month'].values
+    test_dates_series = pd.Series(test_dates_np)
+    
+    test_df = pd.DataFrame({
+        'Month': test_dates_series.dt.to_timestamp().dt.strftime('%B %Y'),
+        'Actual': y_test.numpy().flatten(),
+        'Predicted': predicted_test.flatten()
+    })
     
     # Forecast for the Next Year with only the Month
     future_dates = pd.date_range(start='2023-01-01', periods=12, freq='M')
