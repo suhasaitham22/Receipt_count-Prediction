@@ -357,8 +357,10 @@ if selected_model == "PyTorch Model":
     with torch.no_grad():
         predicted_test = deeper_model(X_test).numpy()
     
-    # Extract dates for test data from the original dataframe
-    test_dates_np = df.loc[X_test.numpy().flatten(), 'Month'].values
+    test_indices = X_test.numpy().flatten().astype(int)
+    
+    # Extract dates for test data from the original dataframe using indices
+    test_dates_np = df.loc[test_indices, 'Month'].values
     test_dates_series = pd.Series(test_dates_np)
     
     test_df = pd.DataFrame({
