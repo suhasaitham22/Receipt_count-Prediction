@@ -357,19 +357,21 @@ if selected_model == "PyTorch Model":
     with torch.no_grad():
         predicted_test = deeper_model(X_test).numpy()
     
+    # Convert test data indices to a list of integers
     test_indices = X_test.numpy().flatten().astype(int)
     
     # Extract dates for test data from the original dataframe using indices
-    test_dates_np = df.loc[test_indices, 'Month'].values
+    test_dates_np = df.loc[df.index.isin(test_indices), 'Month'].values
     test_dates_series = pd.Series(test_dates_np)
     
     test_df = pd.DataFrame({
-        'Month': test_dates_series.dt.to_timestamp().dt.strftime('%B %Y'),
+        'Month': test_dates_series.dt.strftime('%B %Y'),  # Display month and year
         'Actual': y_test.numpy().flatten(),
         'Predicted': predicted_test.flatten()
     })
     
     # Forecast for the Next Year with only the Month
+    # Assume forecasting for the next year (2023)
     future_dates = pd.date_range(start='2023-01-01', periods=12, freq='M')
     future_features = np.arange(len(monthly_data), len(monthly_data) + 12).reshape(-1, 1)
     future_features = scaler.transform(future_features)
@@ -378,12 +380,21 @@ if selected_model == "PyTorch Model":
     with torch.no_grad():
         future_predictions = deeper_model(future_features).numpy()
     
-    forecast_dates = pd.Series(future_dates).dt.to_period('M')
-    forecast_df = pd.DataFrame({'Month': forecast_dates.dt.to_timestamp().dt.strftime('%B %Y'), 'Forecasted Receipts Count': future_predictions.flatten()})
+    forecast_dates = pd.Series(future_dates).dt.strftime('%B %Y')  # Display month and year
+    forecast_df = pd.DataFrame({'Month': forecast_dates, 'Forecasted Receipts Count': future_predictions.flatten()})
     
-    # Display predictions and forecast on the same page with only the Month
-    st.write("Predictions on Test Data (Month-wise):")
-    st.write(test_df)
+    # Checkbox for displaying predictions on test data
+    show_predictions = st.checkbox("Show Predictions on Test Data (Month-wise)")
     
-    st.write("Forecast for the Next Year (Month-wise):")
-    st.write(forecast_df)
+    # Checkbox for displaying forecast for the next year
+    show_forecast = st.checkbox("Show Forecast for the Next Year (Month-wise)")
+    
+    # If checkbox for predictions is checked, display predictions
+    if show_predictions:
+        st.write("Predictions on Test Data (Month-wise):")
+        st.write(test_df)
+    
+    # If checkbox for forecast is checked, display forecast
+    if show_forecast:
+        st.write("Forecast for the Next Year (Month-wise):")
+        st.write(forecast_df)
