@@ -154,84 +154,84 @@ elif page == "Model Predictions":
     selected_model = st.selectbox("Select Model", ("ARIMA", "Linear Regression", "PyTorch Model"))
     
     if selected_model == "ARIMA":
-        st.write("ARIMA Model is Selected.")
+    st.write("ARIMA Model is Selected.")
 
-        # Convert '# Date' column to datetime if it's not already
-        df['# Date'] = pd.to_datetime(df['# Date'])
+    # Convert '# Date' column to datetime if it's not already
+    df['# Date'] = pd.to_datetime(df['# Date'])
     
-        # Set '# Date' column as the index
-        df.set_index('# Date', inplace=True)
+    # Set '# Date' column as the index
+    df.set_index('# Date', inplace=True)
     
-        # Check if the index is a DatetimeIndex, if not, try converting it
-        if not isinstance(df.index, pd.DatetimeIndex):
-            try:
-                df.index = pd.to_datetime(df.index)
-            except ValueError as e:
-                st.error(f"Error converting index to DatetimeIndex: {e}")
-                st.stop()
+    # Check if the index is a DatetimeIndex, if not, try converting it
+    if not isinstance(df.index, pd.DatetimeIndex):
+        try:
+            df.index = pd.to_datetime(df.index)
+        except ValueError as e:
+            st.error(f"Error converting index to DatetimeIndex: {e}")
+            st.stop()
                 
-        # Resample data to monthly frequency
-        ts_data = df['Receipt_Count'].resample('M').sum()
+    # Resample data to monthly frequency
+    ts_data = df['Receipt_Count'].resample('M').sum()
     
-        # Train-test split
-        train_size = int(len(ts_data) * 0.8)
-        train = ts_data.iloc[:train_size]
-        test = ts_data.iloc[train_size:]
-
-        # Grid search for optimal ARIMA parameters
-        p = d = q = range(0, 3)
-        pdq = list(itertools.product(p, d, q))
+    # Train-test split
+    train = ts_data  # Use the entire dataset for training
+    test_start_date = ts_data.index[-1] + pd.DateOffset(months=1)  # Start forecasting from the next month after the last date in the dataset
+    forecast_steps = 12  # Forecast 12 months for the year 2022
+    test_end_date = test_start_date + pd.DateOffset(months=forecast_steps - 1)  # Forecast for the specified number of months
+    test = pd.Series(index=pd.date_range(start=test_start_date, end=test_end_date, freq='M'))
     
-        best_rmse = np.inf
-        best_params = None
+    # Grid search for optimal ARIMA parameters
+    p = d = q = range(0, 3)
+    pdq = list(itertools.product(p, d, q))
     
-        for param in pdq:
-            model = sm.tsa.SARIMAX(train, order=param)
-            arima_model = model.fit()
-            predictions = arima_model.forecast(steps=len(test))
-            rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
+    best_rmse = np.inf
+    best_params = None
     
-            if rmse < best_rmse:
-                best_rmse = rmse
-                best_params = param
+    for param in pdq:
+        model = sm.tsa.SARIMAX(train, order=param)
+        arima_model = model.fit()
+        predictions = arima_model.forecast(steps=len(test))
+        rmse = np.sqrt(np.mean((predictions - test.values) ** 2))
     
-        st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
+        if rmse < best_rmse:
+            best_rmse = rmse
+            best_params = param
     
-        # Fit ARIMA model with best parameters
-        arima_model = sm.tsa.SARIMAX(train, order=best_params)
-        arima_fit = arima_model.fit()
+    st.write(f"Best parameters: {best_params} with RMSE: {best_rmse}")
     
-        # Forecast
-        monthly_predictions = arima_fit.forecast(steps=len(test))
-        monthly_index = pd.date_range(start=test.index[0], periods=len(test), freq='M')
+    # Fit ARIMA model with best parameters using the entire dataset
+    arima_model = sm.tsa.SARIMAX(ts_data, order=best_params)
+    arima_fit = arima_model.fit()
     
-        # Display plot based on user's choice
-        show_plot = st.checkbox("Display Plot")
-        if show_plot:
-            # Create a DataFrame for visualization
-            plot_data = pd.DataFrame({
-                'Month': monthly_index,
-                'Actual': test.values,
-                'ARIMA Forecast': monthly_predictions
-            })
+    # Forecast for the upcoming year (2022)
+    yearly_predictions = arima_fit.forecast(steps=forecast_steps)
+    forecast_index = pd.date_range(start=test_start_date, periods=forecast_steps, freq='M')
     
-            # Plotting using Plotly Express
-            fig = px.line(plot_data, x='Month', y=['Actual', 'ARIMA Forecast'], title='ARIMA Forecast vs Actual')
-            fig.update_xaxes(title='Month')
-            fig.update_yaxes(title='Receipt Count')
-            st.plotly_chart(fig)
+    # Display plot based on user's choice
+    show_plot = st.checkbox("Display Plot")
+    if show_plot:
+        # Create a DataFrame for visualization
+        plot_data = pd.DataFrame({
+            'Month': forecast_index,
+            'ARIMA Forecast': yearly_predictions
+        })
     
-        # Display predictions DataFrame based on user's choice
-        show_predictions_df = st.checkbox("Display Predictions DataFrame")
-        if show_predictions_df:
-            # Create DataFrame with Month, Actual, and Predicted values
-            predictions_df = pd.DataFrame({
-                'Month': monthly_index,
-                'Actual': test.values,
-                'Predicted': monthly_predictions
-            })
-            st.write("Predictions DataFrame")
-            st.write(predictions_df.reset_index(drop=True))
+        # Plotting using Plotly Express
+        fig = px.line(plot_data, x='Month', y='ARIMA Forecast', title='ARIMA Forecast for 2022')
+        fig.update_xaxes(title='Month')
+        fig.update_yaxes(title='Receipt Count')
+        st.plotly_chart(fig)
+    
+    # Display predictions DataFrame based on user's choice
+    show_predictions_df = st.checkbox("Display Predictions DataFrame")
+    if show_predictions_df:
+        # Create DataFrame with Month and Predicted values
+        predictions_df = pd.DataFrame({
+            'Month': forecast_index,
+            'Predicted': yearly_predictions
+        })
+        st.write("Predictions for the year 2022")
+        st.write(predictions_df)
     
     elif selected_model == "Linear Regression":
         st.write('Linear Regression Model Selected')
